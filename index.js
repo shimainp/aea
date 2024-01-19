@@ -1,12 +1,26 @@
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 80 });
+const { WebSocketServer } = require('ws');
+const http = require('http');
 
-wss.on('connection', function connection(ws, req) {
-  let IP = req.connection.remoteAddress.replace("::ffff:","")
-  Send[IP] = ws
-  // Send[IP].send(IP)
-  console.log('New WebSocket connection established.',IP);
-  ws.on('close', function close() {
-    console.log('WebSocket connection closed.');
-  });
+// Spinning the HTTP server and the WebSocket server.
+const server = http.createServer();
+const wsServer = new WebSocketServer({ server });
+
+// I'm maintaining all active connections in this object
+const clients = {};
+
+// A new client connection request received
+wsServer.on('connection', function(connection) {
+  // Generate a unique code for every user
+  const userId = uuidv4();
+  console.log(`Recieved a new connection.`);
+
+  // Store the new connection and handle messages
+  clients[userId] = connection;
+  console.log(`${userId} connected.`);
 });
+
+const port = 8000;
+server.listen(port, () => {
+  console.log(`WebSocket server is running on port ${port}`);
+});
+
