@@ -1,26 +1,26 @@
-const { WebSocketServer } = require('ws');
-const http = require('http');
+const express = require("express")
+const app = express()
+const http = require("http").Server(app)
+const io = require("socket.io")(http)
 
-// Spinning the HTTP server and the WebSocket server.
-const server = http.createServer();
-const wsServer = new WebSocketServer({ server });
+const port = 3000
 
-// I'm maintaining all active connections in this object
-const clients = {};
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + "/index.html")
+})
 
-// A new client connection request received
-wsServer.on('connection', function(connection) {
-  // Generate a unique code for every user
-  const userId = uuidv4();
-  console.log(`Recieved a new connection.`);
+io.on('connection', (socket) => {
+  console.log('Client connected')
+  socket.on('disconnect', () => {
+    console.log('Client disconnected')
+  });
 
-  // Store the new connection and handle messages
-  clients[userId] = connection;
-  console.log(`${userId} connected.`);
+  socket.on('message', (msg) => {
+    io.emit('message', msg)
+  })
+})
+
+
+http.listen(port, () => {
+  console.log(`App listening on port ${port}`)
 });
-
-const port = 8000;
-server.listen(port, () => {
-  console.log(`WebSocket server is running on port ${port}`);
-});
-
